@@ -1,25 +1,28 @@
-name: Staging on gh-pages push
+name: Production Promote Staging on PR Merge
 
 on:
-  push:
-    branches: [ "gh-pages" ]
-    paths:
-      - "staging/**"
-      - "index.html"
-      - ".nojekyll"
-      - ".github/workflows/staging.yml"
+  pull_request:
+    types: [closed]
+    branches: ["main"]
+
+permissions:
+  contents: write
 
 jobs:
-  build:
+  promote:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Verificar conteúdo de staging
+      - name: Checkout gh-pages
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+
+      - name: Promover staging para produção (copiar index)
         run: |
-          test -f staging/index.html && echo "staging OK"
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy é responsabilidade do GitHub Pages
-        run: echo "No-op: 'pages build and deployment' cuidará da publicação."
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          cp staging/index.html index.html
+          git add index.html
+          git commit -m "chore: promote staging to production (from $GITHUB_SHA)" || echo "Nada para promover"
+          git push origin gh-pages
