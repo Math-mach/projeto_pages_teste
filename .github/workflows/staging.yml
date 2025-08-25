@@ -1,0 +1,25 @@
+name: Staging on gh-pages push
+
+on:
+  push:
+    branches: [ "gh-pages" ]
+    paths:
+      - "staging/**"
+      - "index.html"
+      - ".nojekyll"
+      - ".github/workflows/staging.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verificar conteúdo de staging
+        run: |
+          test -f staging/index.html && echo "staging OK"
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy é responsabilidade do GitHub Pages
+        run: echo "No-op: 'pages build and deployment' cuidará da publicação."
